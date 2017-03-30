@@ -11,5 +11,8 @@
 ## Redis
 * PubSub - replace Kafka with Redis as lightweight PubSub engine
 
+## Mongo
+* Dump spark data to MongoDB using Mongo-Hadoop or Mongo-Spark
+
 ## Todo
-* Connect with NoSQL(MongoDB or HBase)
+* Connect with HBase
