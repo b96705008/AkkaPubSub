@@ -11,6 +11,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.17",
   "com.typesafe.akka" %% "akka-persistence" % "2.4.17",
   "com.typesafe.akka" %% "akka-remote" % "2.4.17",
+  "com.typesafe.akka" %% "akka-http-core" % "10.0.5",
+  "com.typesafe.akka" %% "akka-http" % "10.0.5",
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.5",
   "org.iq80.leveldb" % "leveldb" % "0.7",
   "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",

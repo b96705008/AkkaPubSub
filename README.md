@@ -2,6 +2,7 @@
 
 ## Akka
 * FSM - status management
+* http - akka http client for JSON response 
 * Stream - combine with spark and actor
 
 ## Kafka
