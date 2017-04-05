@@ -21,3 +21,12 @@
 
 ## Todo
 * Connect with HBase
+
+## Run on production
+### build
+1. sbt
+2. compile
+3. assembly
+
+### run
+java -cp target/scala-2.11/AkkaPubSub-assembly-xx.jar  com.github.tykuo.xx.SomeMainClass

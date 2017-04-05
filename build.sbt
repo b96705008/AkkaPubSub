@@ -6,6 +6,7 @@ scalaVersion := "2.11.8"
 
 resolvers += Resolver.bintrayRepo("cakesolutions", "maven")
 
+
 libraryDependencies ++= Seq(
   // Akka
   "com.typesafe.akka" %% "akka-actor" % "2.4.17",
@@ -32,3 +33,30 @@ libraryDependencies ++= Seq(
   "org.mongodb.mongo-hadoop" % "mongo-hadoop-core" % "2.0.2",
   "org.mongodb.spark" % "mongo-spark-connector_2.11" % "2.0.0"
 )
+
+test in assembly := {}
+
+assemblyMergeStrategy in assembly := {
+  case PathList("org","aopalliance", xs @ _*) => MergeStrategy.last
+  case PathList("javax", "inject", xs @ _*) => MergeStrategy.last
+  case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
+  case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
+  case PathList("javax", "ws", xs @ _*) => MergeStrategy.last
+  case PathList("org", "apache", xs @ _*) => MergeStrategy.last
+  case PathList("com", "google", xs @ _*) => MergeStrategy.last
+  case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
+  case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
+  case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
+  case PathList("com", "sun", xs @ _*) => MergeStrategy.last
+  case "about.html" => MergeStrategy.rename
+  case "META-INF/ECLIPSEF.RSA" => MergeStrategy.last
+  case "META-INF/mailcap" => MergeStrategy.last
+  case "META-INF/mimetypes.default" => MergeStrategy.last
+  case "plugin.properties" => MergeStrategy.last
+  case "log4j.properties" => MergeStrategy.last
+  case "overview.html" => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
+
