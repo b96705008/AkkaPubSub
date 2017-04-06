@@ -10,15 +10,13 @@ import org.apache.kafka.clients.consumer.{ConsumerRecord, OffsetResetStrategy}
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import com.typesafe.config.{Config, ConfigFactory}
 import cakesolutions.kafka.akka.KafkaConsumerActor.{Confirm, Subscribe}
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.concurrent.duration._
 import scala.util.Random
 
 
 object AutoPartitionConsumer {
-  def apply(sc: SparkContext, system: ActorSystem, config: Config): ActorRef = {
+  def apply(system: ActorSystem, config: Config): ActorRef = {
     val consumerConf = KafkaConsumer.Conf(
       new StringDeserializer,
       new StringDeserializer,
@@ -28,12 +26,11 @@ object AutoPartitionConsumer {
       .withConf(config)
 
     val actorConf = KafkaConsumerActor.Conf(1.seconds, 3.seconds)
-    system.actorOf(Props(new AutoPartitionConsumer(sc, consumerConf, actorConf)))
+    system.actorOf(Props(new AutoPartitionConsumer(consumerConf, actorConf)))
   }
 }
 
-class AutoPartitionConsumer(@transient val sc: SparkContext,
-                            kafkaConfig: KafkaConsumer.Conf[String, String],
+class AutoPartitionConsumer(kafkaConfig: KafkaConsumer.Conf[String, String],
                             actorConfig: KafkaConsumerActor.Conf) extends Actor with ActorLogging {
 
   val recordsExt = ConsumerRecords.extractor[String, String]
@@ -49,8 +46,7 @@ class AutoPartitionConsumer(@transient val sc: SparkContext,
   override def receive: Receive = {
     case recordsExt(records) =>
       //processRecords(records.pairs)
-      //processRecords(records.recordsList)
-      processWithSpark(records.recordsList)
+      processRecords(records.recordsList)
       sender() ! Confirm(records.offsets, commit = true)
   }
 
@@ -65,15 +61,6 @@ class AutoPartitionConsumer(@transient val sc: SparkContext,
       log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()} at ${r.timestamp()}")
     }
   }
-
-  private def processWithSpark(recordsList: List[ConsumerRecord[String, String]]): Unit = {
-    recordsList.foreach { r =>
-      val v1 = rand.nextInt(10) + 1
-      val v2 = rand.nextInt(2) + 1
-      val num = sc.parallelize(1 to v1).map(_ * v2).reduce(_ + _)
-      println(s"${r.topic()} - ${r.value()}: $num")
-    }
-  }
 }
 
 object RunKafkaActor extends App {
@@ -81,19 +68,9 @@ object RunKafkaActor extends App {
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val timeout = Timeout(5 seconds)
 
-  // config
-  Logger.getLogger("org").setLevel(Level.OFF)
-  Logger.getLogger("com").setLevel(Level.OFF)
-  Logger.getRootLogger.setLevel(Level.OFF)
-
-  // spark
-  val conf = new SparkConf().setMaster("local[*]").setAppName("SparkKafkaStream")
-  val sc = new SparkContext(conf)
-
   // Consumer
   println("Ready to create consumer!")
   val consumeActor = AutoPartitionConsumer(
-    sc,
     system,
     ConfigFactory.load().getConfig("consumer"))
 
