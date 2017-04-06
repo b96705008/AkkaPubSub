@@ -19,8 +19,9 @@
 * If using auth, the db user should be assigned the auth to do "splitVector" action
 * https://docs.mongodb.com/v3.2/reference/built-in-roles/#cluster-administration-roles
 
-## Todo
-* Connect with HBase
+## Spark
+* SparkSQL with Hive (should use spark-submit)
+* Submit spark job by akka actor
 
 ## Run on production
 ### build
@@ -29,4 +30,5 @@
 3. assembly
 
 ### run
-java -cp target/scala-2.11/AkkaPubSub-assembly-xx.jar  com.github.tykuo.xx.SomeMainClass
+* [Pure Scala APP] java -cp target/scala-2.11/AkkaPubSub-assembly-xx.jar  com.github.tykuo.xx.SomeMainClass
+* [Spark APP] spark-submit --class com.github.tykuo.xx.SomeMainClass target/scala-2.11/AkkaPubSub-assembly-xx.jar arg1 

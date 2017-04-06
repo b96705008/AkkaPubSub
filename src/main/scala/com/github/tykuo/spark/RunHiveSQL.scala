@@ -22,6 +22,7 @@ object RunHiveSQL extends App {
       .builder()
       .appName("Spark on Hive")
       .master("yarn-client")
+      .config("spark.sql.warehouse.dir", "/user/hive/warehouse")
       .config("hive.metastore.uris", args(1))
       .enableHiveSupport()
       .getOrCreate()
