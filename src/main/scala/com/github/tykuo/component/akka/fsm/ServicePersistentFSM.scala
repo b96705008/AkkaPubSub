@@ -73,6 +73,7 @@ object ServicePersistentFSM {
 
 class ServicePersistentFSM(maxStatus: Int) extends PersistentFSM[State, Data, DomainEvent] {
 
+
   override def domainEventClassTag: ClassTag[DomainEvent] = classTag[DomainEvent]
 
   override def persistenceId: String = "hippo"
@@ -139,15 +140,15 @@ object TestPersistFSM extends App {
 
   val serviceFSM = system.actorOf(Props(new ServicePersistentFSM(10)), name = "service-fsm")
 
-//  for (i <- 1 to 7) {
-//    serviceFSM ! Dispatch("some message")
-//  }
+  for (i <- 1 to 7) {
+    serviceFSM ! Dispatch("some message")
+  }
 
-//  for (i <- 1 to 10) {
-//    serviceFSM ! Dispatch("some message")
-//  }
+  for (i <- 1 to 10) {
+    serviceFSM ! Dispatch("some message")
+  }
   serviceFSM ! Finish
 
-  Thread.sleep(2000)
+  Thread.sleep(4000)
   system.terminate()
 }

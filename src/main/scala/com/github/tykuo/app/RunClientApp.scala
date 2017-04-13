@@ -29,9 +29,14 @@ object RunClientApp extends App {
 
   val actorConf = KafkaConsumerActor.Conf(1.seconds, timeoutDuration)
 
+//  val client = system.actorOf(
+//    Props(new BasicClient(hippoName, subTopics, consumerConf, actorConf)),
+//    name = hippoName)
+
+  val needTables = Set("A", "B", "C")
   val client = system.actorOf(
-    Props(new BasicHippoClient(hippoName, subTopics, consumerConf, actorConf)),
-    name = hippoName)
+        Props(new FSMClient(hippoName, subTopics, consumerConf, actorConf, needTables)),
+        name = hippoName)
 
   println(s"start the hippo: $hippoName")
 }
