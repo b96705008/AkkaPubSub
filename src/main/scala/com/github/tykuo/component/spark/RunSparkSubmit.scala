@@ -17,12 +17,6 @@ object SparkSubmitter {
 
 
 class SparkSubmitter extends Actor {
-  val producer = KafkaProducer(
-    KafkaProducer.Conf(
-      new StringSerializer(),
-      new StringSerializer(),
-      bootstrapServers = "localhost:9092")
-  )
 
   def getSubmitPyCommand: Seq[String] = {
     Seq(
@@ -56,9 +50,6 @@ class SparkSubmitter extends Actor {
 
       message = message + ", user is " + name
       println(message)
-      val record = KafkaProducerRecord("test", Some("spark-job"), message)
-      producer.send(record)
-
       sender ! message
   }
 }
@@ -67,6 +58,13 @@ class SparkSubmitter extends Actor {
 object RunSparkSubmit extends App {
   implicit val timeout = Timeout(30 seconds)
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  val producer = KafkaProducer(
+    KafkaProducer.Conf(
+      new StringSerializer(),
+      new StringSerializer(),
+      bootstrapServers = "localhost:9092")
+  )
 
   val system = ActorSystem()
 
@@ -81,6 +79,8 @@ object RunSparkSubmit extends App {
   submitter ? SparkJob("Mike", "python") onSuccess {
     case x: String =>
       println("Got some result: " + x)
+      val record = KafkaProducerRecord("test", Some("spark-job"), x)
+      producer.send(record)
   }
 
   println("Waiting for running!")

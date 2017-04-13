@@ -24,11 +24,12 @@ object AutoPartitionConsumer {
       .withConf(config)
 
     val actorConf = KafkaConsumerActor.Conf(1.seconds, 3.seconds)
-    system.actorOf(Props(new AutoPartitionConsumer(consumerConf, actorConf)))
+    system.actorOf(Props(new AutoPartitionConsumer(List("test"), consumerConf, actorConf)))
   }
 }
 
-class AutoPartitionConsumer(kafkaConfig: KafkaConsumer.Conf[String, String],
+class AutoPartitionConsumer(topics: List[String],
+                            kafkaConfig: KafkaConsumer.Conf[String, String],
                             actorConfig: KafkaConsumerActor.Conf) extends Actor with ActorLogging {
 
   val recordsExt = ConsumerRecords.extractor[String, String]
@@ -39,22 +40,15 @@ class AutoPartitionConsumer(kafkaConfig: KafkaConsumer.Conf[String, String],
   )
   context.watch(consumer)
 
-  consumer ! Subscribe.AutoPartition(List("test"))
+  consumer ! Subscribe.AutoPartition(topics)
 
   override def receive: Receive = {
     case recordsExt(records) =>
-      //processRecords(records.pairs)
       processRecords(records.recordsList)
       sender() ! Confirm(records.offsets, commit = true)
   }
 
-  private def processRecords(records: Seq[(Option[String], String)]) {
-    records.foreach { case (key, value) =>
-      log.info(s"Received [$key, $value]")
-    }
-  }
-
-  private def processRecords(recordsList: List[ConsumerRecord[String, String]]): Unit = {
+  protected def processRecords(recordsList: List[ConsumerRecord[String, String]]): Unit = {
     recordsList.foreach { r =>
       log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()} at ${r.timestamp()}")
     }
