@@ -1,4 +1,4 @@
-package com.github.tykuo.redis
+package com.github.tykuo.component.redis
 
 import java.net.InetSocketAddress
 
@@ -14,7 +14,7 @@ class SubscribeActor(channels: Seq[String] = Nil, fsm: ActorRef)
     Nil,
     onConnectStatus = connected => {println(s"connected: $connected")}
   ) {
-  import com.github.tykuo.akka.fsm.ServiceFSM._
+  import com.github.tykuo.component.akka.fsm.ServiceFSM._
 
   override def onMessage(m: Message): Unit = {
     if (m.channel == "time") {

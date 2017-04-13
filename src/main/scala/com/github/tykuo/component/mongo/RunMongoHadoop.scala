@@ -1,5 +1,4 @@
-package com.github.tykuo.mongo
-
+package com.github.tykuo.component.mongo
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.{SparkConf, SparkContext}

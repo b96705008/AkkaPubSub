@@ -1,15 +1,15 @@
-package com.github.tykuo.akka.http
-
+package com.github.tykuo.component.akka.http
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import scala.concurrent.Future
-import spray.json.DefaultJsonProtocol
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.ActorMaterializer
+import spray.json.DefaultJsonProtocol
+
+import scala.concurrent.Future
 
 
 case class Post(userId: Int, id: Int, title: String, body: String)

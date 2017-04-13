@@ -1,4 +1,4 @@
-package com.github.tykuo.spark
+package com.github.tykuo.component.spark
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession

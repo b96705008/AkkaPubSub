@@ -1,5 +1,4 @@
-package com.github.tykuo.redis
-
+package com.github.tykuo.component.redis
 
 import redis.RedisClient
 import scala.concurrent.Await

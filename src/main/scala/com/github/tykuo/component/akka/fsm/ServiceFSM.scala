@@ -1,4 +1,4 @@
-package com.github.tykuo.akka.fsm
+package com.github.tykuo.component.akka.fsm
 
 import akka.actor.{FSM, Stash}
 

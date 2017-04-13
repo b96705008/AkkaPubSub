@@ -1,11 +1,15 @@
-package com.github.tykuo.spark
+package com.github.tykuo.component.spark
 
-import sys.process._
-import sys.process.Process
 import akka.actor.{Actor, ActorSystem, Props}
-import SparkSubmitter._
+import akka.pattern.{ask, pipe}
+import akka.util.Timeout
 import cakesolutions.kafka.{KafkaProducer, KafkaProducerRecord}
+import com.github.tykuo.component.spark.SparkSubmitter._
 import org.apache.kafka.common.serialization.StringSerializer
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.sys.process._
 
 object SparkSubmitter {
   case class SparkJob(name: String, fileType: String)
@@ -54,16 +58,30 @@ class SparkSubmitter extends Actor {
       println(message)
       val record = KafkaProducerRecord("test", Some("spark-job"), message)
       producer.send(record)
+
+      sender ! message
   }
 }
 
 
 object RunSparkSubmit extends App {
+  implicit val timeout = Timeout(30 seconds)
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   val system = ActorSystem()
 
   val submitter = system.actorOf(Props[SparkSubmitter], name = "submitter")
   //submitter ! SparkJob("Roger", "jar")
-  submitter ! SparkJob("Miles", "python")
+  //submitter ! SparkJob("Miles", "python")
+
+//  val future = submitter ? SparkJob("Miles", "python")
+//  val result = Await.result(future, timeout.duration).asInstanceOf[String]
+//  println(s"Await result: $result")
+
+  submitter ? SparkJob("Mike", "python") onSuccess {
+    case x: String =>
+      println("Got some result: " + x)
+  }
 
   println("Waiting for running!")
   //Thread.sleep(1000)

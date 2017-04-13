@@ -1,9 +1,8 @@
-package com.github.tykuo.redis
-
+package com.github.tykuo.component.redis
 
 import akka.actor.Props
 import akka.util.Timeout
-import com.github.tykuo.akka.fsm.ServiceFSM
+import com.github.tykuo.component.akka.fsm.ServiceFSM
 import redis.{RedisClient, RedisDispatcher}
 
 import scala.concurrent.duration._
@@ -11,7 +10,6 @@ import scala.concurrent.duration._
 
 object RunPubSub extends App {
   implicit val system = akka.actor.ActorSystem()
-  import scala.concurrent.ExecutionContext.Implicits.global
   implicit val redisDispatcher = RedisDispatcher("akka.actor.default-dispatcher")
   implicit val timeout = Timeout(5 seconds)
 

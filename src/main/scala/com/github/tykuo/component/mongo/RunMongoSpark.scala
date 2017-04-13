@@ -1,4 +1,4 @@
-package com.github.tykuo.mongo
+package com.github.tykuo.component.mongo
 
 import com.mongodb.spark.config.ReadConfig
 import org.apache.log4j.{Level, Logger}

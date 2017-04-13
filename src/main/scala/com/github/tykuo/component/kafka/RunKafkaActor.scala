@@ -1,15 +1,13 @@
-package com.github.tykuo.kafka
-
-import java.beans.Transient
+package com.github.tykuo.component.kafka
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import akka.util.Timeout
-import cakesolutions.kafka.{KafkaConsumer, KafkaProducer, KafkaProducerRecord}
+import cakesolutions.kafka.akka.KafkaConsumerActor.{Confirm, Subscribe}
 import cakesolutions.kafka.akka.{ConsumerRecords, KafkaConsumerActor}
+import cakesolutions.kafka.{KafkaConsumer, KafkaProducer, KafkaProducerRecord}
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.kafka.clients.consumer.{ConsumerRecord, OffsetResetStrategy}
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import com.typesafe.config.{Config, ConfigFactory}
-import cakesolutions.kafka.akka.KafkaConsumerActor.{Confirm, Subscribe}
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -65,7 +63,6 @@ class AutoPartitionConsumer(kafkaConfig: KafkaConsumer.Conf[String, String],
 
 object RunKafkaActor extends App {
   val system = ActorSystem()
-  import scala.concurrent.ExecutionContext.Implicits.global
   implicit val timeout = Timeout(5 seconds)
 
   // Consumer

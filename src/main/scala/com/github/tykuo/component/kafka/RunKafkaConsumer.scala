@@ -1,18 +1,15 @@
-package com.github.tykuo.kafka
-
+package com.github.tykuo.component.kafka
 
 import java.util.{Collections, Properties}
 
 import kafka.utils.Logging
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
-
-import scala.collection.JavaConversions._
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
-
-import scala.util.Random
 import spray.json._
-import DefaultJsonProtocol._
+
+import scala.collection.JavaConversions._
+import scala.util.Random
 
 
 case class HippoMessage(table: String, method: String, timestamp: Option[Int])

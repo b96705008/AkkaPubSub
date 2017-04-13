@@ -1,9 +1,9 @@
-package com.github.tykuo.akka.fsm
+package com.github.tykuo.component.akka.fsm
 
 import akka.actor.{ActorSystem, Props}
 import akka.persistence.fsm.PersistentFSM
 import akka.persistence.fsm.PersistentFSM.FSMState
-import com.github.tykuo.akka.fsm.ServicePersistentFSM._
+import com.github.tykuo.component.akka.fsm.ServicePersistentFSM._
 
 import scala.concurrent.duration._
 import scala.reflect._

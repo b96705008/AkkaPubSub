@@ -1,4 +1,4 @@
-package com.github.tykuo.akka.stream
+package com.github.tykuo.component.akka.stream
 
 import akka.actor.Props
 import org.apache.log4j.{Level, Logger}

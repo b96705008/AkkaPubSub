@@ -1,15 +1,16 @@
-package com.github.tykuo.kafka
+package com.github.tykuo.component.kafka
 
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark._
-import org.apache.spark.streaming._
+import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
+import org.apache.spark.streaming.kafka010.KafkaUtils
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
-import org.apache.spark.streaming.kafka010._
+import org.apache.spark.streaming.{Seconds, StreamingContext}
 
-
-
+/**
+  * Created by roger19890107 on 11/04/2017.
+  */
 object RunKafkaStream extends App {
   // config
   Logger.getLogger("org").setLevel(Level.OFF)

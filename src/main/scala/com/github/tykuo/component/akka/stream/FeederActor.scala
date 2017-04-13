@@ -1,4 +1,4 @@
-package com.github.tykuo.akka.stream
+package com.github.tykuo.component.akka.stream
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
