@@ -13,7 +13,7 @@ object RunClientApp extends App {
   val timeoutDuration = 10 minutes
   val system = ActorSystem()
 
-  val confPath = if (args.length > 0) args(0) else "config/dev.conf"
+  val confPath = if (args.length > 0) args(0) else "config/local.conf"
 
   val config = ConfigFactory.parseFile(new File(confPath))
   val hippoName = config.getString("hippo.name")
