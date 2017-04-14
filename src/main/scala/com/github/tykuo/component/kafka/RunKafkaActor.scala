@@ -41,7 +41,7 @@ class AutoPartitionConsumer(config: Config) extends Actor with ActorLogging {
 
   protected def processRecords(recordsList: List[ConsumerRecord[String, String]]): Unit = {
     recordsList.foreach { r =>
-      log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()} at ${r.timestamp()}")
+      log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()}")
     }
   }
 }
@@ -60,7 +60,7 @@ object RunKafkaActor extends App {
 
   // Producer
   val producerConf = config.getConfig("kafka.producer")
-  val record = KafkaProducerRecord("test", Some("key"), "value")
+  val record = KafkaProducerRecord("roger-test", Some("key"), "value")
   val producer = KafkaProducer(
     KafkaProducer.Conf(
       new StringSerializer(),

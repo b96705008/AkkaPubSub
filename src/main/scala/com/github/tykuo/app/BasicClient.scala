@@ -60,7 +60,7 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
     println("processRecords...")
     recordsList
       .foreach { r =>
-        log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()} at ${r.timestamp()}")
+        log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()}")
         if (r.value() == "submit") {
           handleSubmitInAwait()
         }

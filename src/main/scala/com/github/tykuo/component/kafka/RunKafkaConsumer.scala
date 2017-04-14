@@ -41,7 +41,7 @@ class SparkJobConsumer(val brokers: String,
   }
 
   def processRecordWithSpark(sc: SparkContext, r: ConsumerRecord[String, String]): Unit = {
-    println(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic} at ${r.timestamp}")
+    println(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic}")
     val v1 = rand.nextInt(10) + 1
     val v2 = rand.nextInt(2) + 1
     val num = sc.parallelize(1 to v1).map(_ * v2).reduce(_ + _)
@@ -84,7 +84,7 @@ object RunKafkaConsumer extends App {
   val conf = new SparkConf().setMaster("local[*]").setAppName("SparkKafkaStream")
   val sc = new SparkContext(conf)
 
-  val jobConsumer = new SparkJobConsumer("localhost:9092", "test_group", "test")
+  val jobConsumer = new SparkJobConsumer("localhost:9092", "test_group", "roger-test")
   jobConsumer.run(sc)
 
 }

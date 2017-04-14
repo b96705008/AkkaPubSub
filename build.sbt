@@ -20,15 +20,15 @@ libraryDependencies ++= Seq(
   // Redis
   "com.github.etaty" %% "rediscala" % "1.8.0",
   // Kafka
-  "net.cakesolutions" %% "scala-kafka-client" % "0.10.2.0",
-  "net.cakesolutions" %% "scala-kafka-client-akka" % "0.10.2.0",
+  "net.cakesolutions" %% "scala-kafka-client" % "0.9.0.0" excludeAll(ExclusionRule(organization = "org.slf4j")),
+  "net.cakesolutions" %% "scala-kafka-client-akka" % "0.9.0.0" excludeAll(ExclusionRule(organization = "org.slf4j")),
   // Spark
   "org.apache.spark" % "spark-core_2.11" % "2.1.0",
   "org.apache.spark" % "spark-sql_2.11" % "2.1.0",
   "org.apache.spark" % "spark-hive_2.11" % "2.1.0",
   "org.apache.spark" % "spark-mllib_2.11" % "2.1.0",
   "org.apache.spark" % "spark-streaming_2.11" % "2.1.0",
-  "org.apache.spark" % "spark-streaming-kafka-0-10_2.11" % "2.1.0",
+  "org.apache.spark" % "spark-streaming-kafka-0-8_2.11" % "2.1.0",
   "org.apache.bahir" %% "spark-streaming-akka" % "2.1.0",
   // MongoDB
   "org.mongodb.mongo-hadoop" % "mongo-hadoop-core" % "2.0.2",

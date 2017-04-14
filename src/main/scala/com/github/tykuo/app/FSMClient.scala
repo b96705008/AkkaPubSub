@@ -117,7 +117,7 @@ class FSMClient(config: Config) extends BasicClient(config) {
     println("processRecords...")
     recordsList
       .foreach { r =>
-        log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()} at ${r.timestamp()}")
+        log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()}}")
         fsmService ! GetMsg(r.value())
       }
   }

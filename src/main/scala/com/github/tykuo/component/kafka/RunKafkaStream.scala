@@ -3,9 +3,7 @@ package com.github.tykuo.component.kafka
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
-import org.apache.spark.streaming.kafka010.KafkaUtils
-import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
+import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 /**
@@ -31,12 +29,14 @@ object RunKafkaStream extends App {
     "enable.auto.commit" -> (false: java.lang.Boolean)
   )
 
-  val topics = Array("test")
-  val stream = KafkaUtils.createDirectStream[String, String](
-    ssc, PreferConsistent, Subscribe[String, String](topics, kafkaParams)
+  val numThreads = 1
+  val topics = "roger-test"
+  val topicMap = topics.split(",").map((_, numThreads.toInt)).toMap
+  val stream = KafkaUtils.createStream(
+    ssc, "localhost:2181", "test_group", topicMap
   )
 
-  val records = stream.map(record => (record.key, record.value))
+  val records = stream.map(_._2)
   records.print()
 
   ssc.start()
