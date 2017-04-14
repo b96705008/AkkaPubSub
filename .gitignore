@@ -76,4 +76,5 @@ dump.rdb
 # APP specific
 target
 .idea
+config
 
