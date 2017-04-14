@@ -13,30 +13,18 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 
-object AutoPartitionConsumer {
-  def apply(system: ActorSystem, config: Config): ActorRef = {
-    val consumerConf = KafkaConsumer.Conf(
-      new StringDeserializer,
-      new StringDeserializer,
-      groupId = "test_group",
-      enableAutoCommit = false,
-      autoOffsetReset = OffsetResetStrategy.EARLIEST)
-      .withConf(config)
-
-    val actorConf = KafkaConsumerActor.Conf(1.seconds, 3.seconds)
-    system.actorOf(Props(new AutoPartitionConsumer(List("test"), consumerConf, actorConf)))
-  }
-}
-
-class AutoPartitionConsumer(topics: List[String],
-                            kafkaConfig: KafkaConsumer.Conf[String, String],
-                            actorConfig: KafkaConsumerActor.Conf) extends Actor with ActorLogging {
+class AutoPartitionConsumer(topics: Array[String],
+                            consumerConf: Config) extends Actor with ActorLogging {
 
   val recordsExt = ConsumerRecords.extractor[String, String]
   val rand = new Random()
 
-  val consumer = context.actorOf(
-    KafkaConsumerActor.props(kafkaConfig, actorConfig, self)
+  val consumer: ActorRef = context.actorOf(
+    KafkaConsumerActor.props(
+      consumerConf,
+      new StringDeserializer,
+      new StringDeserializer,
+      self)
   )
   context.watch(consumer)
 
@@ -57,24 +45,27 @@ class AutoPartitionConsumer(topics: List[String],
 
 object RunKafkaActor extends App {
   val system = ActorSystem()
+  import scala.concurrent.ExecutionContext.Implicits.global
   implicit val timeout = Timeout(5 seconds)
 
   // Consumer
   println("Ready to create consumer!")
-  val consumeActor = AutoPartitionConsumer(
-    system,
-    ConfigFactory.load().getConfig("consumer"))
+  val subTopics = Array("test")
+  val consumerConf = ConfigFactory.load().getConfig("kafka.consumer")
+  val consumerActor = system.actorOf(
+    Props(new AutoPartitionConsumer(subTopics, consumerConf)))
 
   // Producer
+  val producerConf = ConfigFactory.load().getConfig("kafka.producer")
   val record = KafkaProducerRecord("test", Some("key"), "value")
   val producer = KafkaProducer(
     KafkaProducer.Conf(
       new StringSerializer(),
-      new StringSerializer(),
-      bootstrapServers = "localhost:9092")
-  )
-//  system.scheduler.schedule(2 seconds, 2 seconds) {
-//    println("send message to topic: test")
-//    producer.send(record)
-//  }
+      new StringSerializer()
+    ).withConf(producerConf))
+
+  system.scheduler.schedule(2 seconds, 2 seconds) {
+    println("send message to topic: test")
+    producer.send(record)
+  }
 }

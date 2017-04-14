@@ -10,30 +10,31 @@ import cakesolutions.kafka.{KafkaConsumer, KafkaProducer, KafkaProducerRecord}
 import com.github.tykuo.component.kafka.AutoPartitionConsumer
 import com.github.tykuo.component.spark.SparkSubmitter
 import com.github.tykuo.component.spark.SparkSubmitter.SparkJob
+import com.typesafe.config.Config
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 
-class BasicClient(hippoName: String,
-                  subTopics: List[String],
-                  kafkaConfig: KafkaConsumer.Conf[String, String],
-                  actorConfig: KafkaConsumerActor.Conf
-                 ) extends AutoPartitionConsumer(subTopics, kafkaConfig, actorConfig) {
+class BasicClient(val hippoName: String,
+                  val subTopics: Array[String],
+                  val pubTopic: String,
+                  consumerConf: Config,
+                  producerConf: Config
+                 ) extends AutoPartitionConsumer(subTopics, consumerConf) {
+
 
   import scala.concurrent.ExecutionContext.Implicits.global
-  implicit val timeout = Timeout(actorConfig.unconfirmedTimeout)
-
-  val pubTopic = "test"
+  implicit val timeout = Timeout(10 minutes)
 
   // Producer
   val producer = KafkaProducer(
     KafkaProducer.Conf(
       new StringSerializer(),
-      new StringSerializer(),
-      bootstrapServers = "localhost:9092")
-  )
+      new StringSerializer()
+    ).withConf(producerConf))
 
   // Submitter
   val submitter: ActorRef = context.actorOf(

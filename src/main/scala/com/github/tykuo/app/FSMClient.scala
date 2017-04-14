@@ -1,10 +1,9 @@
 package com.github.tykuo.app
 
 
-import akka.actor.{ActorRef, FSM, Props, Stash}
-import cakesolutions.kafka.KafkaConsumer
-import cakesolutions.kafka.akka.KafkaConsumerActor
+import akka.actor.{ActorRef, FSM, Props}
 import cakesolutions.kafka.akka.KafkaConsumerActor.Confirm
+import com.typesafe.config.Config
 import org.apache.kafka.clients.consumer.ConsumerRecord
 
 import scala.concurrent.duration._
@@ -62,7 +61,7 @@ class FSMService(needTables: Set[String]) extends FSM[FSMService.State, FSMServi
       }
   }
 
-  when(Waiting, stateTimeout = 5 seconds) {
+  when(Waiting, stateTimeout = 5 minutes) {
     case Event(GetMsg(msg), _) =>
       val (status, _) = addTableToStatus(msg) //Status(stateData.msgSet + msg)
       println(status.msgSet.mkString(", "))
@@ -104,11 +103,12 @@ class FSMService(needTables: Set[String]) extends FSM[FSMService.State, FSMServi
 }
 
 class FSMClient(hippoName: String,
-                subTopics: List[String],
-                kafkaConfig: KafkaConsumer.Conf[String, String],
-                actorConfig: KafkaConsumerActor.Conf,
-                needTables: Set[String]
-               ) extends BasicClient(hippoName, subTopics, kafkaConfig, actorConfig) {
+                subTopics: Array[String],
+                pubTopic: String,
+                val needTables: Set[String],
+                consumerConf: Config,
+                producerConf: Config)
+    extends BasicClient(hippoName, subTopics, pubTopic, consumerConf, producerConf) {
 
   import FSMService._
 
