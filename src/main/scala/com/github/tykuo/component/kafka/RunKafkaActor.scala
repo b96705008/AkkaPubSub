@@ -10,14 +10,17 @@ import org.apache.kafka.clients.consumer.{ConsumerRecord, OffsetResetStrategy}
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 
 import scala.concurrent.duration._
-import scala.util.Random
 
 
-class AutoPartitionConsumer(topics: Array[String],
-                            consumerConf: Config) extends Actor with ActorLogging {
+class AutoPartitionConsumer(config: Config) extends Actor with ActorLogging {
 
+  // config
+  private val consumerConf = config.getConfig("kafka.consumer")
+  val topics: Array[String] = config
+    .getStringList("hippo.subscribe-topics").toArray.map(_.toString)
+
+  // consumer
   val recordsExt = ConsumerRecords.extractor[String, String]
-  val rand = new Random()
 
   val consumer: ActorRef = context.actorOf(
     KafkaConsumerActor.props(
@@ -48,15 +51,15 @@ object RunKafkaActor extends App {
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val timeout = Timeout(5 seconds)
 
+  val config = ConfigFactory.load()
+
   // Consumer
   println("Ready to create consumer!")
-  val subTopics = Array("test")
-  val consumerConf = ConfigFactory.load().getConfig("kafka.consumer")
   val consumerActor = system.actorOf(
-    Props(new AutoPartitionConsumer(subTopics, consumerConf)))
+    Props(new AutoPartitionConsumer(config)))
 
   // Producer
-  val producerConf = ConfigFactory.load().getConfig("kafka.producer")
+  val producerConf = config.getConfig("kafka.producer")
   val record = KafkaProducerRecord("test", Some("key"), "value")
   val producer = KafkaProducer(
     KafkaProducer.Conf(

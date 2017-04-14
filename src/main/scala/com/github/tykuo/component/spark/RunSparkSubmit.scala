@@ -12,11 +12,15 @@ import scala.concurrent.duration._
 import scala.sys.process._
 
 object SparkSubmitter {
-  case class SparkJob(name: String, fileType: String)
+  case class SparkJob(bashPath: String)
 }
 
 
 class SparkSubmitter extends Actor {
+
+  def getSubmitCommand(path: String): Seq[String] =
+    Seq("/bin/bash", path)
+
 
   def getSubmitPyCommand: Seq[String] = {
     Seq(
@@ -34,21 +38,17 @@ class SparkSubmitter extends Actor {
   }
 
   override def receive: Receive = {
-    case SparkJob(name, fileType) =>
-      println(s"I just got a job from $name")
-      val command = if (fileType == "python") getSubmitPyCommand else getSumbitJarCommand
-      println(command.mkString(" "))
-
+    case SparkJob(bashPath) =>
+      println(s"I just got a job to run $bashPath")
       var message = "running"
-      val result = command.!
+      val result = getSubmitCommand(bashPath).!
 
       if (result == 0) {
         message = "Finish spark job finish successfully."
       } else {
         message = "Stop spark job with error!"
       }
-
-      message = message + ", user is " + name
+      message = message + ", from bash: " + bashPath
       println(message)
       sender ! message
   }
@@ -59,6 +59,7 @@ object RunSparkSubmit extends App {
   implicit val timeout = Timeout(30 seconds)
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  val bashPath = "/Users/roger19890107/Developer/main/projects/cathay/hippo/AkkaPubSub/scripts/py-submit.sh"
   val producer = KafkaProducer(
     KafkaProducer.Conf(
       new StringSerializer(),
@@ -67,16 +68,9 @@ object RunSparkSubmit extends App {
   )
 
   val system = ActorSystem()
-
   val submitter = system.actorOf(Props[SparkSubmitter], name = "submitter")
-  //submitter ! SparkJob("Roger", "jar")
-  //submitter ! SparkJob("Miles", "python")
 
-//  val future = submitter ? SparkJob("Miles", "python")
-//  val result = Await.result(future, timeout.duration).asInstanceOf[String]
-//  println(s"Await result: $result")
-
-  submitter ? SparkJob("Mike", "python") onSuccess {
+  submitter ? SparkJob(bashPath) onSuccess {
     case x: String =>
       println("Got some result: " + x)
       val record = KafkaProducerRecord("test", Some("spark-job"), x)
@@ -84,6 +78,4 @@ object RunSparkSubmit extends App {
   }
 
   println("Waiting for running!")
-  //Thread.sleep(1000)
-  //system.terminate()
 }

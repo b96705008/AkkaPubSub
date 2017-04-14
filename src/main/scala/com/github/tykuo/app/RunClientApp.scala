@@ -1,6 +1,8 @@
 package com.github.tykuo.app
 
 
+import java.io.File
+
 import akka.actor.{ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
 
@@ -11,33 +13,16 @@ object RunClientApp extends App {
   val timeoutDuration = 10 minutes
   val system = ActorSystem()
 
-  val config = ConfigFactory.load()
-  val hippoName = "batch-etl.test"
-  val subTopics = config.getStringList("hippo.subscribe-topics").toArray.map(_.toString)
-  val pubTopic = config.getString("hippo.publish-topic")
+  val confPath = if (args.length > 0) args(0) else "config/dev.conf"
 
-  val consumerConf = ConfigFactory.load().getConfig("kafka.consumer")
-  val producerConf = ConfigFactory.load().getConfig("kafka.producer")
+  val config = ConfigFactory.parseFile(new File(confPath))
+  val hippoName = config.getString("hippo.name")
 
-//  val basicClient = system.actorOf(
-//    Props(new BasicClient(
-//      hippoName,
-//      subTopics,
-//      consumerConf,
-//      actorConf,
-//      producerConf)),
-//    name = hippoName)
+  if (args.length > 1 && args(1) == "fsm") {
+    system.actorOf(Props(new FSMClient(config)), name = hippoName)
+  } else {
+    system.actorOf(Props(new BasicClient(config)), name = hippoName)
+  }
 
-  val needTables = Set("A", "B", "C")
-  val fsmClient = system.actorOf(
-    Props(new FSMClient(
-      hippoName,
-      subTopics,
-      pubTopic,
-      needTables,
-      consumerConf,
-      producerConf)),
-    name = hippoName)
-
-  println(s"start the hippo: $hippoName")
+  println(s"start the hippo client: $hippoName")
 }

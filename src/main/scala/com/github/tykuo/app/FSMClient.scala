@@ -102,13 +102,11 @@ class FSMService(needTables: Set[String]) extends FSM[FSMService.State, FSMServi
   initialize()
 }
 
-class FSMClient(hippoName: String,
-                subTopics: Array[String],
-                pubTopic: String,
-                val needTables: Set[String],
-                consumerConf: Config,
-                producerConf: Config)
-    extends BasicClient(hippoName, subTopics, pubTopic, consumerConf, producerConf) {
+class FSMClient(config: Config) extends BasicClient(config) {
+
+  // config
+  val needTables: Set[String] = config
+    .getStringList("hippo.need-tables").toArray.map(_.toString).toSet
 
   import FSMService._
 

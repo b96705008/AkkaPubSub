@@ -4,9 +4,7 @@ package com.github.tykuo.app
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import cakesolutions.kafka.akka.KafkaConsumerActor
-import cakesolutions.kafka.akka.KafkaConsumerActor.Confirm
-import cakesolutions.kafka.{KafkaConsumer, KafkaProducer, KafkaProducerRecord}
+import cakesolutions.kafka.{KafkaProducer, KafkaProducerRecord}
 import com.github.tykuo.component.kafka.AutoPartitionConsumer
 import com.github.tykuo.component.spark.SparkSubmitter
 import com.github.tykuo.component.spark.SparkSubmitter.SparkJob
@@ -18,16 +16,15 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 
-class BasicClient(val hippoName: String,
-                  val subTopics: Array[String],
-                  val pubTopic: String,
-                  consumerConf: Config,
-                  producerConf: Config
-                 ) extends AutoPartitionConsumer(subTopics, consumerConf) {
-
+class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
 
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val timeout = Timeout(10 minutes)
+
+  // config
+  private val producerConf = config.getConfig("kafka.producer")
+  val pubTopic: String = config.getString("hippo.publish-topic")
+  val bashPath: String = config.getString("spark.bash-path")
 
   // Producer
   val producer = KafkaProducer(
@@ -42,7 +39,7 @@ class BasicClient(val hippoName: String,
     name = "submitter")
 
   def handleSubmitInAwait(): Unit = {
-    val future = submitter ? SparkJob("Miles", "python")
+    val future = submitter ? SparkJob(bashPath)
     val result = Await.result(future, timeout.duration).asInstanceOf[String]
     println(s"Await result: $result")
     val record = KafkaProducerRecord(pubTopic, Some("spark-job"), s"Spark Job result: $result")
@@ -51,7 +48,7 @@ class BasicClient(val hippoName: String,
   }
 
   def handleSubmitInAsync(): Unit = {
-    submitter ? SparkJob("Mike", "python") onSuccess {
+    submitter ? SparkJob(bashPath) onSuccess {
       case x: String =>
         println("Got async result: " + x)
         val record = KafkaProducerRecord(pubTopic, Some("spark-job"), s"Spark Job result: $x")
