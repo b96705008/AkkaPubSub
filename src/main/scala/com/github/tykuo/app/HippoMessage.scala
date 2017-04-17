@@ -24,7 +24,5 @@ object HippoJsonProtocol extends DefaultJsonProtocol {
 
 object HippoUtils {
   def currentTimestamp: Long = System.currentTimeMillis() / 1000
-  val FRONTIER_MSG = "frontier-adw"
-  val TEST_SUBMIT_MSG = "kafka-test"
 }
 

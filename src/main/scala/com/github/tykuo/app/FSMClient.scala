@@ -7,6 +7,7 @@ import com.typesafe.config.Config
 import org.apache.kafka.clients.consumer.ConsumerRecord
 
 import scala.concurrent.duration._
+import spray.json._
 
 
 object FSMService {
@@ -103,13 +104,14 @@ class FSMService(needTables: Set[String]) extends FSM[FSMService.State, FSMServi
 }
 
 class FSMClient(config: Config) extends BasicClient(config) {
+  import HippoJsonProtocol._
 
   // config
   val needTables: Set[String] = config
     .getStringList("hippo.need-tables").toArray.map(_.toString).toSet
 
+  // fsm service
   import FSMService._
-
   val fsmService: ActorRef = context.actorOf(
     Props(new FSMService(needTables)), name = "fsm-service")
 
@@ -117,7 +119,22 @@ class FSMClient(config: Config) extends BasicClient(config) {
     recordsList
       .foreach { r =>
         log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()}}")
-        fsmService ! GetMsg(r.value())
+
+        r.topic() match {
+          case FRONTIER_MSG =>
+            try {
+              val fmsg = r.value().parseJson.convertTo[FrontierMessage]
+              val msg = s"${fmsg.db}.${fmsg.table}"
+              fsmService ! GetMsg(msg)
+            } catch {
+              case e: Exception =>
+                println(e)
+                println(s"parse ${r.value()} fail...")
+            }
+
+          case _ if isTesting && r.value() == testMsg =>
+            fsmService ! r.value()
+        }
       }
   }
 

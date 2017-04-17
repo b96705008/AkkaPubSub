@@ -4,6 +4,7 @@ package com.github.tykuo.app
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
+import cakesolutions.kafka.akka.KafkaConsumerActor.Subscribe
 import cakesolutions.kafka.{KafkaProducer, KafkaProducerRecord}
 import com.github.tykuo.component.kafka.AutoPartitionConsumer
 import com.github.tykuo.component.spark.SparkSubmitter
@@ -29,6 +30,14 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
   val pubTopic: String = config.getString("hippo.publish-topic")
   val bashPath: String = config.getString("spark.bash-path")
 
+  // env
+  val isTesting: Boolean = config.getBoolean("env.testing")
+  val testMsg = "test-submit"
+
+  // Frontier message
+  val FRONTIER_MSG: String = config.getString("hippo.frontier-topic")
+  consumer ! Subscribe.AutoPartition(Array(FRONTIER_MSG))
+
   // Producer
   val producer = KafkaProducer(
     KafkaProducer.Conf(
@@ -41,10 +50,10 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
     Props[SparkSubmitter],
     name = "submitter")
 
-  def publishJobFinishMsg(isSuccess: Boolean): Unit = {
+  def publishJobFinishMsg(isSuccess: Boolean, jobName: String=""): Unit = {
     val message = JobFinishMessage(
       hippoName,
-      "testing_spark_job",
+      jobName,
       isSuccess,
       currentTimestamp).toJson.prettyPrint
 
@@ -56,12 +65,12 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
   def handleSubmitInAwait(): Unit = {
     val future = (submitter ? SparkJob(bashPath)).mapTo[Boolean]
     val isSuccess = Await.result(future, timeout.duration)
-    publishJobFinishMsg(isSuccess)
+    publishJobFinishMsg(isSuccess, "testing_spark_job")
   }
 
   def handleSubmitInAsync(): Unit = {
     submitter ? SparkJob(bashPath) onSuccess {
-      case isSuccess: Boolean => publishJobFinishMsg(isSuccess)
+      case isSuccess: Boolean => publishJobFinishMsg(isSuccess, "testing_spark_job")
     }
   }
 
@@ -71,11 +80,6 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
         log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()}")
 
         r.topic() match {
-          case TEST_SUBMIT_MSG =>
-            if (r.value() == "test-submit") {
-              handleSubmitInAwait()
-            }
-
           case FRONTIER_MSG =>
             try {
               val msg = r.value().parseJson.convertTo[FrontierMessage]
@@ -86,6 +90,9 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
                 println(e)
                 println(s"parse ${r.value()} fail...")
             }
+
+          case _ if isTesting && r.value() == testMsg =>
+            handleSubmitInAwait()
         }
       }
   }
