@@ -114,7 +114,6 @@ class FSMClient(config: Config) extends BasicClient(config) {
     Props(new FSMService(needTables)), name = "fsm-service")
 
   override protected def processRecords(recordsList: List[ConsumerRecord[String, String]]): Unit = {
-    println("processRecords...")
     recordsList
       .foreach { r =>
         log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()}}")

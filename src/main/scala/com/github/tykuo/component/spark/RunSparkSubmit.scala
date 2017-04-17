@@ -22,35 +22,16 @@ class SparkSubmitter extends Actor {
     Seq("/bin/bash", path)
 
 
-  def getSubmitPyCommand: Seq[String] = {
-    Seq(
-      "spark-submit",
-      "/Users/roger19890107/Developer/main/projects/cathay/hippo/AkkaPubSub/scripts/spark.py"
-    )
-  }
-
-  def getSumbitJarCommand: Seq[String] = {
-    Seq(
-      "spark-submit",
-      "--class com.github.tykuo.spark.RunHiveSQL",
-      "/Users/roger19890107/Developer/main/projects/cathay/hippo/AkkaPubSub/target/scala-2.11/AkkaPubSub-assembly-1.0.jar"
-    )
-  }
-
   override def receive: Receive = {
     case SparkJob(bashPath) =>
       println(s"I just got a job to run $bashPath")
-      var message = "running"
       val result = getSubmitCommand(bashPath).!
 
       if (result == 0) {
-        message = "Finish spark job finish successfully."
+        sender ! true
       } else {
-        message = "Stop spark job with error!"
+        sender ! false
       }
-      message = message + ", from bash: " + bashPath
-      println(message)
-      sender ! message
   }
 }
 
@@ -72,7 +53,7 @@ object RunSparkSubmit extends App {
 
   submitter ? SparkJob(bashPath) onSuccess {
     case x: String =>
-      println("Got some result: " + x)
+      println("Is success? " + x)
       val record = KafkaProducerRecord("test", Some("spark-job"), x)
       producer.send(record)
   }
