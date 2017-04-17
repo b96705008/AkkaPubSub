@@ -36,7 +36,6 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
 
   // Frontier message
   val FRONTIER_MSG: String = config.getString("hippo.frontier-topic")
-  consumer ! Subscribe.AutoPartition(Array(FRONTIER_MSG))
 
   // Producer
   val producer = KafkaProducer(

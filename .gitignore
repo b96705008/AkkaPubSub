@@ -78,3 +78,9 @@ target
 .idea
 config
 
+project/project/
+snapshots/
+spark-warehouse/
+src/main/java/
+src/main/scala-2.11/
+src/test/
