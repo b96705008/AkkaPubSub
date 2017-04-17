@@ -115,27 +115,9 @@ class FSMClient(config: Config) extends BasicClient(config) {
   val fsmService: ActorRef = context.actorOf(
     Props(new FSMService(needTables)), name = "fsm-service")
 
-  override protected def processRecords(recordsList: List[ConsumerRecord[String, String]]): Unit = {
-    recordsList
-      .foreach { r =>
-        log.info(s"Received [${r.key()}, ${r.value()}] from topic: ${r.topic()}}")
-
-        r.topic() match {
-          case FRONTIER_MSG =>
-            try {
-              val fmsg = r.value().parseJson.convertTo[FrontierMessage]
-              val msg = s"${fmsg.db}.${fmsg.table}"
-              fsmService ! GetMsg(msg)
-            } catch {
-              case e: Exception =>
-                println(e)
-                println(s"parse ${r.value()} fail...")
-            }
-
-          case _ if isTesting && r.value() == testMsg =>
-            fsmService ! r.value()
-        }
-      }
+  override protected def processFrontierMsg(fmsg: FrontierMessage): Unit = {
+    val msg = s"${fmsg.db}.${fmsg.table}"
+    fsmService ! GetMsg(msg)
   }
 
   override def receive: Receive = {

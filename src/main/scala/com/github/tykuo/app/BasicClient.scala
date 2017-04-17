@@ -61,16 +61,25 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
     producer.send(record)
   }
 
-  def handleSubmitInAwait(): Unit = {
+  def handleSubmitInAwait(jobName: String="testing_spark_job"): Unit = {
     val future = (submitter ? SparkJob(bashPath)).mapTo[Boolean]
     val isSuccess = Await.result(future, timeout.duration)
-    publishJobFinishMsg(isSuccess, "testing_spark_job")
+    publishJobFinishMsg(isSuccess, jobName)
   }
 
-  def handleSubmitInAsync(): Unit = {
+  def handleSubmitInAsync(jobName: String="testing_spark_job"): Unit = {
     submitter ? SparkJob(bashPath) onSuccess {
-      case isSuccess: Boolean => publishJobFinishMsg(isSuccess, "testing_spark_job")
+      case isSuccess: Boolean => publishJobFinishMsg(isSuccess, jobName)
     }
+  }
+
+  protected def processFrontierMsg(fmsg: FrontierMessage): Unit = {
+    println(s"process ${fmsg.db}.${fmsg.table}")
+    handleSubmitInAwait()
+  }
+
+  protected def processTestingMsg(msg: String): Unit = {
+    handleSubmitInAwait()
   }
 
   override protected def processRecords(recordsList: List[ConsumerRecord[String, String]]): Unit = {
@@ -81,9 +90,8 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
         r.topic() match {
           case FRONTIER_MSG =>
             try {
-              val msg = r.value().parseJson.convertTo[FrontierMessage]
-              println(s"process ${msg.db}.${msg.table}")
-              handleSubmitInAwait()
+              val fmsg = r.value().parseJson.convertTo[FrontierMessage]
+              processFrontierMsg(fmsg)
             } catch {
               case e: Exception =>
                 println(e)
@@ -91,7 +99,7 @@ class BasicClient(config: Config) extends AutoPartitionConsumer(config) {
             }
 
           case _ if isTesting && r.value() == testMsg =>
-            handleSubmitInAwait()
+            processTestingMsg(r.value())
         }
       }
   }
